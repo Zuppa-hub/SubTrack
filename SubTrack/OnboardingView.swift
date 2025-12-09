@@ -18,43 +18,44 @@ enum AuthScreen {
 struct OnboardingView: View {
     @Environment(SubscriptionManager.self) private var manager
     
-    // ⭐️ Lo stato che decide quale schermata mostrare (Login o Registrazione)
+    // Aggiungiamo un nuovo stato per tracciare la fase di Onboarding
+    @State private var isAuthenticated: Bool = false
+    
     @State private var currentScreen: AuthScreen = .login
     
     // Funzione chiamata al successo dell'autenticazione
     func handleAuthSuccess() {
-        // Al successo, impostiamo lo stato di login a true nel Manager
-        manager.isLoggedIn = true
-        // ⚠️ Nota: Aggiungeremo qui la logica per la selezione iniziale degli abbonamenti più avanti
+        // Al successo dell'autenticazione, passiamo alla selezione iniziale
+        isAuthenticated = true
+        // ❌ Rimuovi 'manager.isLoggedIn = true' qui. Lo sposteremo dopo la selezione.
     }
     
     var body: some View {
-        // Usa una NavigationStack per permettere il pulsante "back"
         NavigationStack {
             VStack {
                 
-                // --- Visualizzazione Condizionale ---
-                switch currentScreen {
-                case .login:
-                    LoginView(
-                        onLoginSuccess: handleAuthSuccess,
-                        onRegisterTapped: {
-                            // Cambia la schermata quando l'utente clicca "Register for free"
-                            currentScreen = .registration
-                        }
-                    )
-                case .registration:
-                    RegistrationView(
-                        onRegistrationSuccess: handleAuthSuccess,
-                        onLoginTapped: {
-                            // Cambia la schermata quando l'utente clicca "Log in"
-                            currentScreen = .login
-                        }
-                    )
+                if isAuthenticated {
+                    // ⭐️ MOSTRA LA SELEZIONE INIZIALE
+                    InitialSubscriptionSelectionView()
+                } else {
+                    // MOSTRA LOGIN/REGISTRAZIONE
+                    switch currentScreen {
+                        // ... (Il codice di LoginView e RegistrationView rimane invariato) ...
+                    case .login:
+                        LoginView(
+                            onLoginSuccess: handleAuthSuccess,
+                            onRegisterTapped: { currentScreen = .registration }
+                        )
+                    case .registration:
+                        RegistrationView(
+                            onRegistrationSuccess: handleAuthSuccess,
+                            onLoginTapped: { currentScreen = .login }
+                        )
+                    }
                 }
             }
-            .animation(.easeInOut, value: currentScreen) // Animazione fluida tra le schermate
-            // Nasconde la barra di navigazione di default, lasciando l'interfaccia pulita
+            .animation(.easeInOut, value: isAuthenticated)
+            .animation(.easeInOut, value: currentScreen)
             .toolbar(.hidden, for: .navigationBar)
         }
     }

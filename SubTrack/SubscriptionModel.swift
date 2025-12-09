@@ -26,6 +26,28 @@ struct Subscription: Identifiable, Codable {
     }
 }
 
+// Struttura che rappresenta un servizio predefinito (per la selezione iniziale)
+struct PredefinedService: Identifiable {
+    let id = UUID()
+    let name: String
+    let iconName: String
+    let isCustom: Bool
+    
+    // Lista Statica di servizi (il tuo catalogo)
+    static let popularServices: [PredefinedService] = [
+        // L'elemento "Custom" andrà per primo
+        PredefinedService(name: "Custom", iconName: "plus.circle.fill", isCustom: true),
+        PredefinedService(name: "Netflix", iconName: "netflix.icon", isCustom: false),
+        PredefinedService(name: "Spotify", iconName: "spotify.icon" , isCustom: false),
+        PredefinedService(name: "Disney+", iconName: "film.fill", isCustom: false),
+        PredefinedService(name: "Amazon Prime", iconName: "bag.fill", isCustom: false),
+        PredefinedService(name: "YouTube Premium", iconName: "play.tv.fill", isCustom: false),
+        PredefinedService(name: "Apple Music", iconName: "music.note.list", isCustom: false),
+        PredefinedService(name: "Xbox Game Pass", iconName: "gamecontroller.fill", isCustom: false),
+        PredefinedService(name: "Dropbox", iconName: "folder.fill.badge.person.crop", isCustom: false),
+    ]
+}
+
 // MARK: - 2. Enumeration for Payment Cycle
 // CaseIterable allows us to easily iterate over all possible cases (e.g., in a Picker)
 enum PaymentCycle: String, Codable, CaseIterable {
