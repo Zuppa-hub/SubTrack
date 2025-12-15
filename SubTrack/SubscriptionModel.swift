@@ -25,17 +25,20 @@ struct Subscription: Identifiable, Codable {
         return components.day ?? 0
     }
 }
-
-// Struttura che rappresenta un servizio predefinito (per la selezione iniziale)
+struct MonthlyCost: Identifiable {
+    let id = UUID()
+    let month: String
+    let totalCost: Double
+}
+// for the onboarding
 struct PredefinedService: Identifiable {
     let id = UUID()
     let name: String
     let iconName: String
     let isCustom: Bool
     
-    // Lista Statica di servizi (il tuo catalogo)
+    // static list of predefined services
     static let popularServices: [PredefinedService] = [
-        // L'elemento "Custom" andrà per primo
         PredefinedService(name: "Custom", iconName: "plus.circle.fill", isCustom: true),
         PredefinedService(name: "Netflix", iconName: "netflix.icon", isCustom: false),
         PredefinedService(name: "Spotify", iconName: "spotify.icon" , isCustom: false),
@@ -98,5 +101,40 @@ class SubscriptionManager {
             Subscription(id: UUID(), name: "Spotify Family", cost: 15.99, currency: "EUR", renewalDate: spotifyDate, paymentCycle: .monthly),
             Subscription(id: UUID(), name: "Adobe Creative Cloud", cost: 60.99, currency: "EUR", renewalDate: calendar.date(byAdding: .month, value: 3, to: today)!, paymentCycle: .quarterly),
         ]
+    }
+    func calculateEstimatedMonthlyCost() -> [MonthlyCost] {
+        if subscriptions.isEmpty {
+            return []
+        }
+        
+        // 1. Calcola il costo totale equivalente mensile per OGNI abbonamento
+        let monthlyTotal = subscriptions.reduce(0.0) { result, sub in
+            let monthlyEquivalent: Double
+            
+            switch sub.paymentCycle {
+            case .monthly:
+                monthlyEquivalent = sub.cost
+            case .quarterly:
+                monthlyEquivalent = sub.cost / 3.0
+            case .annually:
+                monthlyEquivalent = sub.cost / 12.0
+            case .weekly:
+                monthlyEquivalent = sub.cost * (30.0 / 7.0) // Approssimazione
+            }
+            
+            // Accumula il totale
+            return result + monthlyEquivalent
+        }
+        
+        // 2. Creiamo dei dati fittizi per visualizzare una tendenza storica
+        // NB: La logica del mese è fittizia per mostrare una tendenza nel grafico.
+        let costs = [
+            ("Ottobre 2025", monthlyTotal * 0.95),
+            ("Novembre 2025", monthlyTotal),
+            ("Dicembre 2025", monthlyTotal * 1.05), // Aumento fittizio nel mese corrente
+            ("Gennaio 2026", monthlyTotal * 1.02),
+        ]
+        
+        return costs.map { MonthlyCost(month: $0.0, totalCost: $0.1) }
     }
 }

@@ -9,7 +9,6 @@
 
 import SwiftUI
 
-// ⭐️ Enumerazione per tracciare lo stato di visualizzazione
 enum AuthScreen {
     case login
     case registration
@@ -18,16 +17,11 @@ enum AuthScreen {
 struct OnboardingView: View {
     @Environment(SubscriptionManager.self) private var manager
     
-    // Aggiungiamo un nuovo stato per tracciare la fase di Onboarding
     @State private var isAuthenticated: Bool = false
     
     @State private var currentScreen: AuthScreen = .login
-    
-    // Funzione chiamata al successo dell'autenticazione
-    func handleAuthSuccess() {
-        // Al successo dell'autenticazione, passiamo alla selezione iniziale
+        func handleAuthSuccess() {
         isAuthenticated = true
-        // ❌ Rimuovi 'manager.isLoggedIn = true' qui. Lo sposteremo dopo la selezione.
     }
     
     var body: some View {
@@ -35,12 +29,9 @@ struct OnboardingView: View {
             VStack {
                 
                 if isAuthenticated {
-                    // ⭐️ MOSTRA LA SELEZIONE INIZIALE
                     InitialSubscriptionSelectionView()
                 } else {
-                    // MOSTRA LOGIN/REGISTRAZIONE
                     switch currentScreen {
-                        // ... (Il codice di LoginView e RegistrationView rimane invariato) ...
                     case .login:
                         LoginView(
                             onLoginSuccess: handleAuthSuccess,

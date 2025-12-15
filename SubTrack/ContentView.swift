@@ -5,8 +5,6 @@
 //  Created by Andrea Cazzato on 07/12/25.
 //
 
-// ContentView.swift aggiornato
-
 // File: ContentView.swift
 
 import SwiftUI
@@ -17,16 +15,16 @@ struct ContentView: View {
     
     var body: some View {
         if manager.isLoggedIn {
-            // MOSTRA LA TAB BAR (Schermate Home, Statistiche, ecc.)
+            // Show the Tab Bar (Home, Statistics, etc.)
             TabView {
                 SubscriptionsListView()
-                    .tabItem { Label("Abbonamenti", systemImage: "list.bullet.rectangle.fill") }
+                    .tabItem { Label(LocalizedStringKey("tab_subscriptions"), systemImage: "list.bullet.rectangle.fill") }
                 
                 StatisticsView()
-                    .tabItem { Label("Statistiche", systemImage: "chart.bar.fill") }
+                    .tabItem { Label(LocalizedStringKey("tab_statistics"), systemImage: "chart.bar.fill") }
 
                 AITextBoxView()
-                    .tabItem { Label("AI", systemImage: "sparkles.square.fill") }
+                    .tabItem { Label(LocalizedStringKey("tab_ai"), systemImage: "sparkles.square.fill") }
             }
         } else {
             OnboardingView()
@@ -42,3 +40,4 @@ struct ContentView: View {
     return ContentView()
         .environment(manager)
 }
+

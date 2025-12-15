@@ -14,7 +14,7 @@ struct RegistrationView: View {
     @State private var password = ""
     @State private var confirmPassword = ""
     
-    // Passato dalla OnboardingView
+    // passed by onboardingView
     let onRegistrationSuccess: () -> Void
     let onLoginTapped: () -> Void
     
@@ -51,9 +51,9 @@ struct RegistrationView: View {
             Button("Register") {
                 // TODO: Implementare la logica di registrazione backend
                 if password == confirmPassword {
-                    onRegistrationSuccess() // Simulazione di successo
+                    onRegistrationSuccess() //simulation
                 } else {
-                    // TODO: Mostra un errore all'utente (es. password non corrispondono)
+                    // TODO:shoe an error
                     print("Passwords do not match!")
                 }
             }
@@ -64,7 +64,6 @@ struct RegistrationView: View {
             .foregroundColor(.white)
             .cornerRadius(10)
             
-            // ... (Aggiungi qui il pulsante Apple/Google e il separatore se vuoi mantenere lo stile) ...
             
             Spacer()
             
@@ -73,7 +72,7 @@ struct RegistrationView: View {
                 Text("Already have an account?")
                 
                 Button {
-                    onLoginTapped() // Cambia la vista per il Login
+                    onLoginTapped() // change view for login
                 } label: {
                     Text("**Log in**")
                 }

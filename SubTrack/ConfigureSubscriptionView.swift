@@ -10,89 +10,98 @@ import SwiftUI
 struct ConfigureSubscriptionView: View {
     @Environment(SubscriptionManager.self) private var manager
     
-    // Il servizio che stiamo configurando (passato dalla vista precedente)
+    // Il servizio che stiamo configurando
     let serviceToConfigure: PredefinedService
     
-    @State private var costString: String = "" // Usiamo String per TextField del costo
+    // Usiamo 'serviceName' universale invece di 'customServiceName'
+    @State private var serviceName: String
+    @State private var costString: String = ""
     @State private var currency: String = "EUR"
     @State private var renewalDate: Date = Date()
     @State private var paymentCycle: PaymentCycle = .monthly
     
-    // L'azione da eseguire al completamento (passata dalla vista madre)
+    // Azione al completamento
     let onCompletion: (Subscription) -> Void
     
-    // Dizionario delle valute semplici (per la demo)
     let availableCurrencies = ["EUR", "USD", "GBP"]
     
+    // ⭐️ INIZIALIZZATORE PERSONALIZZATO
+    // Serve per pre-popolare il campo 'serviceName' con il nome del servizio scelto (es. "Netflix")
+    init(serviceToConfigure: PredefinedService, onCompletion: @escaping (Subscription) -> Void) {
+        self.serviceToConfigure = serviceToConfigure
+        self.onCompletion = onCompletion
+        
+        // Inizializza lo stato del nome con il valore passato
+        _serviceName = State(initialValue: serviceToConfigure.name)
+    }
+    
     var body: some View {
-        Form { // Form è ideale per la raccolta di input strutturati
-            
-            // --- Sezione Dettagli ---
-            Section(header: Text("Dettagli Abbonamento")) {
+        Form {
+            // --- Details Section ---
+            Section(header: Text(LocalizedStringKey("subscription_details"))) {
                 
-                // Nome del Servizio (non modificabile, viene dal PredefinedService)
-                HStack {
-                    Text("Servizio:")
-                        .foregroundColor(.gray)
-                    Spacer()
-                    Text(serviceToConfigure.name)
-                        .fontWeight(.semibold)
-                }
+                // ⭐️ CAMPO NOME: Ora funziona per TUTTI i servizi
+                // Parte pre-compilato con "Netflix" (o altro) ma è modificabile
+                TextField(LocalizedStringKey("service_name_placeholder"), text: $serviceName)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled(false)
+                
+                // ⭐️ CAMPO COSTO
+                TextField(LocalizedStringKey("cost_placeholder"), text: $costString)
+                    .keyboardType(.decimalPad)
             }
             
-            // --- Sezione Costo e Ciclo ---
-            Section(header: Text("Costo e Pagamento")) {
+            // --- Cost and Payment Section ---
+            Section(header: Text(LocalizedStringKey("cost_and_payment"))) {
                 
-                // Input Costo
-                TextField("Costo (es. 12.99)", text: $costString)
-                    .keyboardType(.decimalPad) // Tastiera numerica
-                
-                // Scelta Valuta
-                Picker("Valuta", selection: $currency) {
+                // Currency Picker
+                Picker(LocalizedStringKey("currency_title"), selection: $currency) {
                     ForEach(availableCurrencies, id: \.self) {
                         Text($0)
                     }
                 }
                 .pickerStyle(.menu)
                 
-                // Scelta Ciclo di Pagamento
-                Picker("Ciclo di Pagamento", selection: $paymentCycle) {
-                    // Usiamo CaseIterable definito nel PaymentCycle
+                // Payment Cycle Picker
+                Picker(LocalizedStringKey("payment_cycle_title"), selection: $paymentCycle) {
                     ForEach(PaymentCycle.allCases, id: \.self) { cycle in
-                        Text(cycle.rawValue) // .rawValue mostra il nome leggibile ("Mensile")
+                        Text(LocalizedStringKey(cycle.rawValue))
                     }
                 }
             }
             
-            // --- Sezione Data di Rinnovo ---
-            Section(header: Text("Prossimo Rinnovo")) {
-                DatePicker("Data di Rinnovo", selection: $renewalDate, displayedComponents: .date)
-                    // Non permettiamo date passate
+            // --- Next Renewal Date Section ---
+            Section(header: Text(LocalizedStringKey("next_renewal"))) {
+                DatePicker(LocalizedStringKey("renewal_date_title"), selection: $renewalDate, displayedComponents: .date)
                     .datePickerStyle(.graphical)
                     .tint(.blue)
             }
             
-            // --- Pulsante di Salvataggio ---
-            Button("Salva Abbonamento") {
+            // --- Save Button ---
+            Button(LocalizedStringKey("save_subscription")) {
                 saveSubscription()
             }
-            // Disabilitato se il campo costo è vuoto o non valido
-            .disabled(costString.isEmpty || Double(costString) == nil)
+            // Disabilitato se costo invalido o nome vuoto
+            .disabled(costString.isEmpty || Double(costString) == nil || serviceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
         }
-        .navigationTitle("Configura \(serviceToConfigure.name)")
+        .navigationTitle("\(NSLocalizedString("configure_title_prefix", comment: "")) \(serviceToConfigure.name)")
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    // Funzione per creare e salvare l'abbonamento
+    // ⭐️ UNICA Funzione di salvataggio
     private func saveSubscription() {
-        guard let cost = Double(costString) else { return } // Dovrebbe essere gestito da disabled, ma per sicurezza
+        guard let cost = Double(costString) else { return }
         
-        // Crea il nuovo oggetto Subscription
+        // Pulisci e verifica il nome
+        let finalServiceName = serviceName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !finalServiceName.isEmpty else { return }
+        
+        // Crea il nuovo oggetto Subscription usando i dati modificati
         let newSubscription = Subscription(
-            id: UUID(), // Assicurati di passare l'ID per la correzione Codable
-            name: serviceToConfigure.name,
+            id: UUID(),
+            name: finalServiceName, // Usa il nome editato dall'utente
             cost: cost,
             currency: currency,
             renewalDate: renewalDate,
@@ -108,7 +117,7 @@ struct ConfigureSubscriptionView: View {
 #Preview {
     ConfigureSubscriptionView(
         serviceToConfigure: PredefinedService(name: "Netflix", iconName: "netflix.icon", isCustom: false),
-        onCompletion: { _ in } // Placeholder vuoto per la preview
+        onCompletion: { _ in }
     )
     .environment(SubscriptionManager())
 }

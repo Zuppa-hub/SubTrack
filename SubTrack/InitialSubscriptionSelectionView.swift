@@ -16,7 +16,9 @@ struct InitialSubscriptionSelectionView: View {
     @State private var servicesToConfigure: [PredefinedService] = []
     @State private var configuredSubscriptions: [Subscription] = []
     @State private var currentServiceIndex: Int? = nil
-    // Configurazione della griglia: 3 colonne adattive
+    @State private var isConfiguring: Bool = false
+    
+    // Grid configuration: 3 adaptive columns
     let columns = [
         GridItem(.flexible()),
         GridItem(.flexible()),
@@ -26,31 +28,31 @@ struct InitialSubscriptionSelectionView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                // --- Header e Titolo ---
+                // --- Header and Title ---
                 HStack {
-                    Text("Select your active subscriptions")
+                    Text(LocalizedStringKey("select_active_subscriptions"))
                         .font(.title)
                         .fontWeight(.bold)
                     
                     Spacer()
                     
-                    Button("Skip") {
+                    Button(LocalizedStringKey("skip")) {
                         manager.isLoggedIn = true
                     }
                 }
                 .padding(.horizontal)
                 
-                // --- Barra di Ricerca (Placeholder) ---
+                // --- Search Bar (Placeholder) ---
                 HStack {
                     Image(systemName: "magnifyingglass")
-                    TextField("Search services...", text: .constant("")) // Placeholder
+                    TextField(LocalizedStringKey("search_services_placeholder"), text: .constant("")) // Placeholder
                 }
                 .padding(8)
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
                 .padding([.horizontal, .bottom])
                 
-                // --- Griglia di Selezione ---
+                // --- Selection Grid ---
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 15) {
                         ForEach(PredefinedService.popularServices) { service in
@@ -63,9 +65,10 @@ struct InitialSubscriptionSelectionView: View {
                     .padding()
                 }
                 
-                // --- Pulsante Next ---
+                // --- Next Button ---
                 if !selectedServiceIDs.isEmpty {
-                    Button("Next (\(selectedServiceIDs.count) Selected)") {
+                    // Uses NSLocalizedString for string formatting (e.g., "Next (3 Selected)")
+                    Button(String(format: NSLocalizedString("next_selected_format", comment: ""), selectedServiceIDs.count)) {
                         startConfiguration()
                     }
                     .font(.headline)
@@ -79,57 +82,59 @@ struct InitialSubscriptionSelectionView: View {
                 }
             }
             .navigationBarHidden(true)
-            .navigationDestination(item: $currentServiceIndex) { index in
-                guard index < servicesToConfigure.count else {
-                    // Se l'indice non è valido, mostra un placeholder vuoto o ritorna
-                    // (Questo è solo un controllo di sicurezza)
-                    return Text("Errore di configurazione interno.").frame(height: 0)
+            
+            .navigationDestination(isPresented: .constant(currentServiceIndex != nil)) {
+                if let index = currentServiceIndex, index < servicesToConfigure.count {
+                    let service = servicesToConfigure[index]
+                    ConfigureSubscriptionView(
+                        serviceToConfigure: service,
+                        onCompletion: { newSub in
+                            handleConfigurationCompletion(subscription: newSub)
+                        }
+                    )
+                } else {
+                    Text(LocalizedStringKey("internal_configuration_error"))
+                        .frame(height: 0)
                 }
-                
-                let service = servicesToConfigure[index]
-                
-                ConfigureSubscriptionView(
-                    serviceToConfigure: service,
-                    onCompletion: { newSub in
-                        handleConfigurationCompletion(subscription: newSub)
-                    }
-                )
             }
+        }
     }
+    
     private func startConfiguration() {
-        // 1. Filtra i servizi selezionati
+        // 1. Filter selected services
         servicesToConfigure = PredefinedService.popularServices.filter {
             selectedServiceIDs.contains($0.id)
         }
-        // 2. Resetta l'array di abbonamenti configurati
+        // 2. Reset the configured subscriptions array
         configuredSubscriptions = []
-        // 3. Avvia il primo step
+        // 3. Start the first step
         currentServiceIndex = 0
     }
+    
     private func handleConfigurationCompletion(subscription: Subscription) {
-        // 1. Aggiunge l'abbonamento configurato all'array temporaneo
+        // 1. Add the configured subscription to the temporary array
         configuredSubscriptions.append(subscription)
         
-        // 2. Controlla se ci sono altri abbonamenti da configurare
+        // 2. Check if there are other subscriptions to configure
         if let current = currentServiceIndex, current + 1 < servicesToConfigure.count {
-            // Passa al prossimo abbonamento
+            // Move to the next subscription
             currentServiceIndex = current + 1
         } else {
-            // 3. FINE DELLA CONFIGURAZIONE:
-            // Aggiunge tutti gli abbonamenti al Manager
+            // 3. CONFIGURATION END:
+            // Add all subscriptions to the Manager
             for sub in configuredSubscriptions {
                 manager.addSubscription(sub)
             }
             
-            // Imposta lo stato dell'app su loggato e passa alla Tab Bar
+            // Set the app state to logged in and switch to the Tab Bar
             manager.isLoggedIn = true
             
-            // Resetta l'indice per chiudere la NavigationStack
+            // Reset the index to close the NavigationStack
             currentServiceIndex = nil
         }
     }
     
-    // Funzione per gestire la selezione multipla
+    // Function to handle multiple selection
     private func toggleSelection(_ service: PredefinedService) {
         if selectedServiceIDs.contains(service.id) {
             selectedServiceIDs.remove(service.id)
@@ -139,7 +144,7 @@ struct InitialSubscriptionSelectionView: View {
     }
 }
 
-// --- Vista per l'Elemento della Griglia ---
+// --- View for the Grid Item ---
 struct ServiceGridItem: View {
     let service: PredefinedService
     let isSelected: Bool
@@ -147,7 +152,7 @@ struct ServiceGridItem: View {
     var body: some View {
         VStack {
             ZStack(alignment: .bottomTrailing) {
-                // Icona del Servizio
+                // Service Icon
                 Image(systemName: service.iconName)
                     .resizable()
                     .scaledToFit()
@@ -158,7 +163,7 @@ struct ServiceGridItem: View {
                     .cornerRadius(15)
                     .shadow(radius: 3)
                 
-                // ⭐️ Checkmark in basso a destra
+                // ⭐️ Checkmark on the bottom right
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
@@ -167,13 +172,13 @@ struct ServiceGridItem: View {
                 }
             }
             
-            // Nome del Servizio
+            // Service Name
             Text(service.name)
                 .font(.caption)
                 .fontWeight(.medium)
                 .multilineTextAlignment(.center)
         }
-        .opacity(isSelected ? 1.0 : 0.7) // Rende gli elementi selezionati più evidenti
+        .opacity(isSelected ? 1.0 : 0.7) // Make selected items more prominent
     }
 }
 

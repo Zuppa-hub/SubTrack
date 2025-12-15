@@ -1,0 +1,56 @@
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# --- Xcode ---
+# File di build e dati derivati
+build/
+DerivedData/
+
+# Impostazioni utente specifiche (breakpoint, finestre aperte, ecc.)
+*.usermode
+*.user
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.xu
+*.cs
+
+# User data all'interno del progetto
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Package.resolved: Di solito si vuole versionare questo file per bloccare le dipendenze,
+# ma se hai problemi di conflitti puoi scommentare la riga sotto.
+# Package.resolved
+
+# --- Swift Package Manager ---
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
+# --- Simulator ---
+# Log generati dal simulatore
+*.log
+
+# --- Altri file temporanei ---
+*~.nib
+*.swp
+*~
+.iso
+
+# --- CocoaPods (Se mai dovessi usarlo in futuro) ---
+# Pods/
+# *.xcworkspace
+
+# --- Fastlane (Se mai dovessi usarlo) ---
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# --- Accidental files ---
+# File che potresti aver creato per sbaglio
+.idea/
+.vscode/

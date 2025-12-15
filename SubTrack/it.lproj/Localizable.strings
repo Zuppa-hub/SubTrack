@@ -1,0 +1,40 @@
+/* 
+  Localizable.strings
+  SubTrack
+
+  Created by Andrea Cazzato on 14/12/25.
+  
+*/
+"tab_subscriptions" = "Abbonamenti";
+"tab_statistics" = "Statistiche";
+"tab_ai" = "AI";
+"tabbar_hint" = "Mostra la Tab Bar (Home, Statistiche, ecc.)";
+"onboarding_title" = "Onboarding";
+"subscription_details" = "Dettagli Abbonamento";
+"service_name_placeholder" = "Nome Servizio";
+"cost_placeholder" = "Costo (es. 12.99)";
+"service_label" = "Servizio:";
+"cost_and_payment" = "Costo e Pagamento";
+"currency_title" = "Valuta";
+"payment_cycle_title" = "Ciclo di Pagamento";
+"next_renewal" = "Prossimo Rinnovo";
+"renewal_date_title" = "Data di Rinnovo";
+"save_subscription" = "Salva Abbonamento";
+"configure_title_prefix" = "Configura";
+"Monthly" = "Mensile";
+"Yearly" = "Annuale";
+"Weekly" = "Settimanale";
+"select_active_subscriptions" = "Seleziona i tuoi abbonamenti attivi";
+"skip" = "Salta";
+"search_services_placeholder" = "Cerca servizi...";
+"next_selected_format" = "Avanti (%ld Selezionati)";
+"internal_configuration_error" = "Errore di configurazione interno.";
+"welcome_back_title" = "Welcome back";
+"login_subtitle" = "The easiest way to manage your subscriptions and save money";
+"email_placeholder" = "Email";
+"password_placeholder" = "Password";
+"log_in_button" = "Accedi";
+"or_continue_with" = "o continua con";
+"continue_with_apple" = "Continua con Apple";
+"dont_have_account_prompt" = "Non hai un account?";
+"register_for_free_link" = "**Registrati gratis**";

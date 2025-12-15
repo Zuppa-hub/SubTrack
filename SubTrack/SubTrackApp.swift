@@ -9,12 +9,11 @@ import SwiftUI
 
 @main
 struct SubTrackApp: App {
-    // Crea un'unica istanza del SubscriptionManager all'avvio dell'app.
+    //Create instance
     @State private var subscriptionManager = SubscriptionManager()
 
     var body: some Scene {
         WindowGroup {
-            // Rende il manager accessibile a tutte le viste all'interno di ContentView
             ContentView()
                 .environment(subscriptionManager)
         }

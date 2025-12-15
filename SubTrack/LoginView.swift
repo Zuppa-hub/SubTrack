@@ -8,11 +8,10 @@
 import SwiftUI
 
 struct LoginView: View {
-    // ⭐️ @State: Variabili che contengono lo stato locale della vista (input utente)
     @State private var email = ""
     @State private var password = ""
     
-    // Passato dalla OnboardingView per gestire la navigazione/autenticazione
+    // Passed from OnboardingView to handle navigation/authentication
     let onLoginSuccess: () -> Void
     let onRegisterTapped: () -> Void
     
@@ -20,27 +19,28 @@ struct LoginView: View {
         VStack(spacing: 20) {
             
             // --- Header ---
-            Text("Welcome back")
+            Text(LocalizedStringKey("welcome_back_title"))
                 .font(.largeTitle)
                 .fontWeight(.bold)
             
-            Text("The easiest way to manage your subscriptions and save money")
+            Text(LocalizedStringKey("login_subtitle"))
                 .font(.subheadline)
                 .foregroundStyle(.gray)
                 .multilineTextAlignment(.center)
             
             Spacer().frame(height: 30)
             
-            // --- Campi di Input ---
+            // --- Input Fields ---
             VStack(spacing: 15) {
-                TextField("Email", text: $email)
+                // TextField uses the localized key as a placeholder
+                TextField(LocalizedStringKey("email_placeholder"), text: $email)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                 
-                SecureField("Password", text: $password)
+                SecureField(LocalizedStringKey("password_placeholder"), text: $password)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
@@ -48,10 +48,10 @@ struct LoginView: View {
             
             Spacer().frame(height: 10)
             
-            // --- Pulsanti Principali ---
-            Button("Log in") {
-                // TODO: Implementare la logica di autenticazione backend
-                onLoginSuccess() // Simulazione di successo
+            // --- Primary Button ---
+            Button(LocalizedStringKey("log_in_button")) {
+                // TODO: Implement backend authentication logic
+                onLoginSuccess() // Success simulation
             }
             .font(.headline)
             .frame(maxWidth: .infinity)
@@ -60,18 +60,18 @@ struct LoginView: View {
             .foregroundColor(.white)
             .cornerRadius(10)
             
-            // --- Separatore o Opzione Secondaria ---
-            Text("or continue with")
+            // --- Separator or Secondary Option ---
+            Text(LocalizedStringKey("or_continue_with"))
                 .font(.caption)
                 .foregroundStyle(.gray)
             
-            // Pulsante di Accesso con Apple/Google (Secondario)
+            // Apple/Google Sign-In Button (Secondary)
             Button {
-                // TODO: Implementare l'accesso con servizi esterni
+                // TODO: Implement external service access
             } label: {
                 HStack {
-                    Image(systemName: "apple.logo") // Usa un'icona SF Symbols
-                    Text("Continue with Apple")
+                    Image(systemName: "apple.logo") // Uses an SF Symbols icon
+                    Text(LocalizedStringKey("continue_with_apple"))
                 }
                 .font(.headline)
                 .frame(maxWidth: .infinity)
@@ -83,20 +83,18 @@ struct LoginView: View {
             
             Spacer()
             
-            // --- Link Registrazione ---
+            // --- Registration Link ---
             HStack {
-                Text("Don't have an account?")
+                Text(LocalizedStringKey("dont_have_account_prompt"))
                 
                 Button {
-                    onRegisterTapped() // Cambia la vista per la Registrazione
+                    onRegisterTapped() // Switches the view to Registration
                 } label: {
-                    Text("**Register for free**")
+                    Text(LocalizedStringKey("register_for_free_link"))
                 }
             }
         }
         .padding(30)
-        .frame(maxHeight: .infinity) // ⭐️ Assicura che il VSTACK si estenda
+        .frame(maxHeight: .infinity)
     }
 }
-
-// ... (Preview omettiamo per brevità, la faremo nella OnboardingView)

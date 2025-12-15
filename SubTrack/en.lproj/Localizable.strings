@@ -1,0 +1,69 @@
+/* Localizable.strings
+  SubTrack
+
+  Created by Andrea Cazzato on 14/12/25.
+  
+*/
+
+/* Italian Localization */
+
+/* Tabs */
+"tab_subscriptions" = "Home"; /* Nota: Nel tuo codice hai sovrascritto questo valore alla fine, quindi uso Home */
+"tab_statistics" = "Statistiche";
+"tab_ai" = "AI";
+"tabbar_hint" = "Mostra la barra di navigazione (Home, Statistiche, ecc.)";
+
+/* Onboarding & Configurazione */
+"onboarding_title" = "Benvenuto";
+"subscription_details" = "Dettagli Abbonamento";
+"service_name_placeholder" = "Nome Servizio";
+"cost_placeholder" = "Costo (es. 12,99)";
+"service_label" = "Servizio:";
+"cost_and_payment" = "Costo e Pagamento";
+"currency_title" = "Valuta";
+"payment_cycle_title" = "Ciclo di Pagamento";
+"next_renewal" = "Prossimo Rinnovo";
+"renewal_date_title" = "Data di Rinnovo";
+"save_subscription" = "Salva Abbonamento";
+"configure_title_prefix" = "Configura";
+
+/* Cicli di Pagamento */
+"Monthly" = "Mensile";
+"Yearly" = "Annuale"; /* O "Yearly" se usi l'enum direttamente, ma per UI meglio Annuale */
+"Weekly" = "Settimanale";
+
+/* Flusso Selezione */
+"select_active_subscriptions" = "Seleziona i tuoi abbonamenti attivi";
+"skip" = "Salta";
+"search_services_placeholder" = "Cerca servizi...";
+"next_selected_format" = "Avanti (%ld Selezionati)";
+"internal_configuration_error" = "Errore di configurazione interno.";
+
+/* Login */
+"welcome_back_title" = "Bentornato";
+"login_subtitle" = "Il modo più semplice per gestire i tuoi abbonamenti e risparmiare";
+"email_placeholder" = "Email";
+"password_placeholder" = "Password";
+"log_in_button" = "Accedi";
+"or_continue_with" = "o continua con";
+"continue_with_apple" = "Continua con Apple";
+"dont_have_account_prompt" = "Non hai un account?";
+"register_for_free_link" = "**Registrati gratis**";
+
+/* Home Screen */
+"home_screen_title" = "Home";
+"day_of_week_placeholder" = "Oggi";
+"search_subscription_placeholder" = "Cerca abbonamento";
+"active_subscriptions_list_title" = "Abbonamenti Attivi";
+"add_button" = "Aggiungi";
+"total_for_this_month_title" = "Totale per questo mese";
+"active_subscriptions_count_format" = "%d abbonamenti attivi";
+
+/* Logica Rinnovi */
+"renewal_tomorrow" = "Domani";
+"renewal_in_days_format" = "Tra %d giorni";
+"renewal_in_weeks_format" = "Tra %d settimane";
+
+/* Aggiungi Custom */
+"custom_sub_name" = "Abbonamento Personalizzato";
+"cancel_button" = "Annulla";
