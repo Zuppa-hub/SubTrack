@@ -197,7 +197,7 @@ struct SubscriptionRowView: View {
                     .foregroundColor(.gray)
             }
             .onTapGesture {
-                // TODO: Implementare la navigazione ai dettagli (come nel tuo mockup a destra)
+                print("Navigating to details of: \(subscription.name)")
             }
         }
     }

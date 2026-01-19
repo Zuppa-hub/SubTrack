@@ -19,6 +19,7 @@ struct ConfigureSubscriptionView: View {
     @State private var currency: String = "EUR"
     @State private var renewalDate: Date = Date()
     @State private var paymentCycle: PaymentCycle = .monthly
+    @State private var category: Category = .other
     
     // Azione al completamento
     let onCompletion: (Subscription) -> Void
@@ -68,6 +69,17 @@ struct ConfigureSubscriptionView: View {
                         Text(LocalizedStringKey(cycle.rawValue))
                     }
                 }
+                
+                // Category Picker
+                Picker(LocalizedStringKey("category_title"), selection: $category) {
+                    ForEach(Category.allCases, id: \.self) { cat in
+                        HStack {
+                            Image(systemName: cat.iconName)
+                            Text(LocalizedStringKey(cat.rawValue))
+                        }
+                        .tag(cat)
+                    }
+                }
             }
             
             // --- Next Renewal Date Section ---
@@ -106,6 +118,7 @@ struct ConfigureSubscriptionView: View {
             currency: currency,
             renewalDate: renewalDate,
             paymentCycle: paymentCycle,
+            category: category,
             isCustom: serviceToConfigure.isCustom
         )
         

@@ -1,6 +1,41 @@
 import Foundation
 import SwiftUI // Included for @Observable (often implicitly available)
 
+// MARK: - Category Enumeration
+enum Category: String, Codable, CaseIterable {
+    case entertainment = "Entertainment"
+    case music = "Music"
+    case productivity = "Productivity"
+    case news = "News"
+    case gaming = "Gaming"
+    case fitness = "Fitness"
+    case other = "Other"
+    
+    var iconName: String {
+        switch self {
+        case .entertainment: return "film.fill"
+        case .music: return "music.note"
+        case .productivity: return "briefcase.fill"
+        case .news: return "newspaper.fill"
+        case .gaming: return "gamecontroller.fill"
+        case .fitness: return "figure.run"
+        case .other: return "tag.fill"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .entertainment: return .red
+        case .music: return .purple
+        case .productivity: return .blue
+        case .news: return .orange
+        case .gaming: return .green
+        case .fitness: return .pink
+        case .other: return .gray
+        }
+    }
+}
+
 // MARK: - 1. The Data Structure
 struct Subscription: Identifiable, Codable {
     // Unique identifier, required for using ForEach in SwiftUI Lists
@@ -14,6 +49,7 @@ struct Subscription: Identifiable, Codable {
     var renewalDate: Date
     
     var paymentCycle: PaymentCycle // Monthly, Annually, etc.
+    var category: Category // Category of the subscription
     var isCustom: Bool = false
     
     // Computed Property: useful for sorting and display
@@ -66,22 +102,46 @@ enum PaymentCycle: String, Codable, CaseIterable {
 @Observable
 class SubscriptionManager {
     // The list that will hold all the user's subscriptions
-    var subscriptions: [Subscription] = []
-    var isLoggedIn: Bool = false
+    var subscriptions: [Subscription] = [] {
+        didSet {
+            saveSubscriptions()
+        }
+    }
+    var isLoggedIn: Bool = false {
+        didSet {
+            UserDefaults.standard.set(isLoggedIn, forKey: "isLoggedIn")
+        }
+    }
+    
+    private let subscriptionsKey = "savedSubscriptions"
 
     // Initializer: executed when the Manager is created
     init() {
-        /* Create mock data for initial testing
-        if subscriptions.isEmpty {
-            subscriptions = Self.createMockSubscriptions()
-        }
-         */
+        loadSubscriptions()
+        isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
     }
     
     // Example function to add a subscription
     func addSubscription(_ sub: Subscription) {
         subscriptions.append(sub)
-        // TODO: Add logic here to save data permanently (Persistence)
+    }
+    
+    // MARK: - Persistence Methods
+    private func saveSubscriptions() {
+        if let encoded = try? JSONEncoder().encode(subscriptions) {
+            UserDefaults.standard.set(encoded, forKey: subscriptionsKey)
+        }
+    }
+    
+    private func loadSubscriptions() {
+        if let savedData = UserDefaults.standard.data(forKey: subscriptionsKey),
+           let decoded = try? JSONDecoder().decode([Subscription].self, from: savedData) {
+            subscriptions = decoded
+        }
+    }
+    
+    func deleteSubscription(_ subscription: Subscription) {
+        subscriptions.removeAll { $0.id == subscription.id }
     }
     
     // Helper function to create sample data
@@ -97,9 +157,9 @@ class SubscriptionManager {
         let spotifyDate = calendar.date(byAdding: .day, value: 15, to: today)!
 
         return [
-            Subscription(id: UUID(), name: "Netflix Premium", cost: 17.99, currency: "EUR", renewalDate: netflixDate, paymentCycle: .monthly),
-            Subscription(id: UUID(), name: "Spotify Family", cost: 15.99, currency: "EUR", renewalDate: spotifyDate, paymentCycle: .monthly),
-            Subscription(id: UUID(), name: "Adobe Creative Cloud", cost: 60.99, currency: "EUR", renewalDate: calendar.date(byAdding: .month, value: 3, to: today)!, paymentCycle: .quarterly),
+            Subscription(id: UUID(), name: "Netflix Premium", cost: 17.99, currency: "EUR", renewalDate: netflixDate, paymentCycle: .monthly, category: .entertainment),
+            Subscription(id: UUID(), name: "Spotify Family", cost: 15.99, currency: "EUR", renewalDate: spotifyDate, paymentCycle: .monthly, category: .music),
+            Subscription(id: UUID(), name: "Adobe Creative Cloud", cost: 60.99, currency: "EUR", renewalDate: calendar.date(byAdding: .month, value: 3, to: today)!, paymentCycle: .quarterly, category: .productivity),
         ]
     }
     func calculateEstimatedMonthlyCost() -> [MonthlyCost] {
@@ -136,5 +196,71 @@ class SubscriptionManager {
         ]
         
         return costs.map { MonthlyCost(month: $0.0, totalCost: $0.1) }
+    }
+    
+    // MARK: - Statistics Methods
+    struct CategoryStat: Identifiable {
+        let id = UUID()
+        let category: Category
+        let totalCost: Double
+        let transactionCount: Int
+        let percentage: Double
+    }
+    
+    func getCategoryStatistics() -> [CategoryStat] {
+        guard !subscriptions.isEmpty else { return [] }
+        
+        // Group subscriptions by category
+        let grouped = Dictionary(grouping: subscriptions, by: { $0.category })
+        
+        // Calculate total monthly cost for percentage
+        let totalMonthlyCost = subscriptions.reduce(0.0) { result, sub in
+            let monthlyEquivalent: Double
+            switch sub.paymentCycle {
+            case .monthly: monthlyEquivalent = sub.cost
+            case .quarterly: monthlyEquivalent = sub.cost / 3.0
+            case .annually: monthlyEquivalent = sub.cost / 12.0
+            case .weekly: monthlyEquivalent = sub.cost * (30.0 / 7.0)
+            }
+            return result + monthlyEquivalent
+        }
+        
+        // Create statistics for each category
+        let stats = grouped.map { (category, subs) -> CategoryStat in
+            let categoryCost = subs.reduce(0.0) { result, sub in
+                let monthlyEquivalent: Double
+                switch sub.paymentCycle {
+                case .monthly: monthlyEquivalent = sub.cost
+                case .quarterly: monthlyEquivalent = sub.cost / 3.0
+                case .annually: monthlyEquivalent = sub.cost / 12.0
+                case .weekly: monthlyEquivalent = sub.cost * (30.0 / 7.0)
+                }
+                return result + monthlyEquivalent
+            }
+            
+            let percentage = totalMonthlyCost > 0 ? (categoryCost / totalMonthlyCost) * 100 : 0
+            
+            return CategoryStat(
+                category: category,
+                totalCost: categoryCost,
+                transactionCount: subs.count,
+                percentage: percentage
+            )
+        }
+        
+        return stats.sorted { $0.totalCost > $1.totalCost }
+    }
+    
+    func getTotalMonthlyExpense() -> Double {
+        return subscriptions.reduce(0.0) { result, sub in
+            let monthlyEquivalent: Double
+            switch sub.paymentCycle {
+            case .monthly: monthlyEquivalent = sub.cost
+            case .quarterly: monthlyEquivalent = sub.cost / 3.0
+            case .annually: monthlyEquivalent = sub.cost / 12.0
+            case .weekly: monthlyEquivalent = sub.cost * (30.0 / 7.0)
+            }
+            return result + monthlyEquivalent
+        }
     }
 }

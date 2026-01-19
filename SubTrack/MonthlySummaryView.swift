@@ -14,7 +14,7 @@ struct MonthlySummaryView: View {
     
     // montly estimated price
     var totalCost: Double {
-        manager.calculateEstimatedMonthlyCost().first(where: { $0.month.contains("Dicembre") || $0.month.contains("Novembre") })?.totalCost ?? 0.0
+        manager.getTotalMonthlyExpense()
     }
     
     var body: some View {

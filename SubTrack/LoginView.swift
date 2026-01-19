@@ -50,8 +50,11 @@ struct LoginView: View {
             
             // --- Primary Button ---
             Button(LocalizedStringKey("log_in_button")) {
-                // TODO: Implement backend authentication logic
-                onLoginSuccess() // Success simulation
+                if !email.isEmpty && !password.isEmpty {
+                    onLoginSuccess()
+                } else {
+                    print("Please fill all fields")
+                }
             }
             .font(.headline)
             .frame(maxWidth: .infinity)
@@ -67,7 +70,8 @@ struct LoginView: View {
             
             // Apple/Google Sign-In Button (Secondary)
             Button {
-                // TODO: Implement external service access
+                print("Apple Sign-In pressed")
+                onLoginSuccess()
             } label: {
                 HStack {
                     Image(systemName: "apple.logo") // Uses an SF Symbols icon

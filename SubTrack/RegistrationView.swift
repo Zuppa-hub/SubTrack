@@ -49,12 +49,12 @@ struct RegistrationView: View {
             Spacer().frame(height: 10)
             
             Button("Register") {
-                // TODO: Implementare la logica di registrazione backend
-                if password == confirmPassword {
-                    onRegistrationSuccess() //simulation
-                } else {
-                    // TODO:shoe an error
+                if password == confirmPassword && !password.isEmpty && !email.isEmpty {
+                    onRegistrationSuccess()
+                } else if password != confirmPassword {
                     print("Passwords do not match!")
+                } else {
+                    print("Please fill all fields")
                 }
             }
             .font(.headline)
