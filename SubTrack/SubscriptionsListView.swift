@@ -95,9 +95,9 @@ struct SubscriptionsListView: View {
                             .padding(.horizontal)
                             
                             // --- 5. Lista Abbonamenti ---
-                            let sortedSubscriptions = manager.subscriptions.sorted {
-                                $0.renewalDate < $1.renewalDate
-                            }
+                            let sortedSubscriptions = manager.subscriptions
+                                .filter { searchText.isEmpty || $0.name.localizedCaseInsensitiveContains(searchText) }
+                                .sorted { $0.renewalDate < $1.renewalDate }
                             
                             VStack(spacing: 1) {
                                 ForEach(sortedSubscriptions) { subscription in
