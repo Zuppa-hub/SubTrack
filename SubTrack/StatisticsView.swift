@@ -7,9 +7,9 @@
 
 import SwiftUI
 
+// MARK: - Main View
 struct StatisticsView: View {
     @Environment(SubscriptionManager.self) private var manager
-    
     @State private var selectedPeriod: StatisticsPeriod = .monthly
     
     var body: some View {
@@ -17,86 +17,18 @@ struct StatisticsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     
-                    // --- 1. Total Expenses Header ---
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(LocalizedStringKey("total_expenses_label"))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(totalExpense, format: .currency(code: "EUR"))
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
+                    StatsHeaderView(totalExpense: totalExpense)
                     
-                    // --- 2. Period Toggle (Monthly/Yearly) ---
-                    HStack(spacing: 0) {
-                        PeriodToggleButton(
-                            title: LocalizedStringKey("monthly_label"),
-                            isSelected: selectedPeriod == .monthly
-                        ) {
-                            selectedPeriod = .monthly
-                        }
-                        
-                        PeriodToggleButton(
-                            title: LocalizedStringKey("yearly_label"),
-                            isSelected: selectedPeriod == .yearly
-                        ) {
-                            selectedPeriod = .yearly
-                        }
-                    }
-                    .background(Color(uiColor: .systemGray6))
-                    .cornerRadius(8)
-                    .padding(.horizontal)
+                    StatsPeriodSelector(selectedPeriod: $selectedPeriod)
                     
-                    // --- 3. Pie Chart ---
-                    if !manager.subscriptions.isEmpty {
-                        VStack {
-                            ZStack {
-                                PieChartView(data: categoryData)
-                                    .frame(height: 200)
-                                
-                                VStack(spacing: 2) {
-                                    if let topCategory = categoryData.first {
-                                        Text("\(Int(topCategory.percentage))%")
-                                            .font(.title)
-                                            .fontWeight(.bold)
-                                        Text(LocalizedStringKey("of_total_expenses"))
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                    } else {
-                        ContentUnavailableView(
-                            label: {
-                                Label(LocalizedStringKey("no_statistics_title"), systemImage: "chart.pie")
-                            },
-                            description: {
-                                Text(LocalizedStringKey("no_statistics_description"))
-                            }
-                        )
-                        .frame(height: 200)
-                    }
+                    // Pass pre-calculated data to the chart
+                    StatsChartView(
+                        isEmpty: manager.subscriptions.isEmpty,
+                        pieData: pieChartData,
+                        topCategoryPercentage: topCategoryPercentage
+                    )
                     
-                    // --- 4. By Category Title ---
-                    Text(LocalizedStringKey("by_category_label"))
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .padding(.horizontal)
-                    
-                    // --- 5. Category List ---
-                    VStack(spacing: 12) {
-                        ForEach(categoryData) { stat in
-                            CategoryRowView(stat: stat)
-                        }
-                    }
-                    .padding(.horizontal)
+                    StatsCategoryListView(categoryData: categoryData)
                     
                     Spacer(minLength: 100)
                 }
@@ -106,7 +38,9 @@ struct StatisticsView: View {
         }
     }
     
-    var totalExpense: Double {
+    // MARK: - Computed Properties
+    
+    private var totalExpense: Double {
         if selectedPeriod == .monthly {
             return manager.getTotalMonthlyExpense()
         } else {
@@ -114,11 +48,11 @@ struct StatisticsView: View {
         }
     }
     
-    var categoryData: [SubscriptionManager.CategoryStat] {
+    private var categoryData: [CategoryStat] {
         let stats = manager.getCategoryStatistics()
         if selectedPeriod == .yearly {
             return stats.map { stat in
-                SubscriptionManager.CategoryStat(
+                CategoryStat(
                     category: stat.category,
                     totalCost: stat.totalCost * 12,
                     transactionCount: stat.transactionCount,
@@ -128,12 +62,166 @@ struct StatisticsView: View {
         }
         return stats
     }
+    
+    // Pre-calculate chart data to relieve compiler pressure
+    private var pieChartData: [PieSliceData] {
+        var slices: [PieSliceData] = []
+        var currentAngle: Double = -90 // Start at top
+        
+        for stat in categoryData {
+            let angleAmount = stat.percentage * 3.6 // 3.6 degrees per percent
+            let endAngle = currentAngle + angleAmount
+            
+            slices.append(PieSliceData(
+                startAngle: Angle(degrees: currentAngle),
+                endAngle: Angle(degrees: endAngle),
+                color: stat.category.color
+            ))
+            
+            currentAngle = endAngle
+        }
+        return slices
+    }
+    
+    private var topCategoryPercentage: Int? {
+        guard let first = categoryData.first else { return nil }
+        return Int(first.percentage)
+    }
 }
 
-// MARK: - Period Toggle
+// MARK: - Enums & Models
 enum StatisticsPeriod {
     case monthly, yearly
 }
+
+struct PieSliceData: Identifiable {
+    let id = UUID()
+    let startAngle: Angle
+    let endAngle: Angle
+    let color: Color
+}
+
+// MARK: - Subviews
+
+struct StatsHeaderView: View {
+    let totalExpense: Double
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(LocalizedStringKey("total_expenses_label"))
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(totalExpense, format: .currency(code: "EUR"))
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top)
+    }
+}
+
+struct StatsPeriodSelector: View {
+    @Binding var selectedPeriod: StatisticsPeriod
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            PeriodToggleButton(
+                title: LocalizedStringKey("monthly_label"),
+                isSelected: selectedPeriod == .monthly
+            ) {
+                selectedPeriod = .monthly
+            }
+            
+            PeriodToggleButton(
+                title: LocalizedStringKey("yearly_label"),
+                isSelected: selectedPeriod == .yearly
+            ) {
+                selectedPeriod = .yearly
+            }
+        }
+        .background(Color.gray.opacity(0.15))
+        .cornerRadius(8)
+        .padding(.horizontal)
+    }
+}
+
+struct StatsChartView: View {
+    let isEmpty: Bool
+    let pieData: [PieSliceData]
+    let topCategoryPercentage: Int?
+    
+    var body: some View {
+        Group {
+            if !isEmpty {
+                VStack {
+                    ZStack {
+                        // Simplified Chart
+                        GeometryReader { geometry in
+                            ZStack {
+                                ForEach(pieData) { slice in
+                                    PieSliceShape(
+                                        startAngle: slice.startAngle,
+                                        endAngle: slice.endAngle
+                                    )
+                                    .fill(slice.color)
+                                }
+                            }
+                        }
+                        .frame(height: 200)
+                        
+                        // Center Text
+                        VStack(spacing: 2) {
+                            if let percentage = topCategoryPercentage {
+                                Text("\(percentage)%")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                Text(LocalizedStringKey("of_total_expenses"))
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            } else {
+                ContentUnavailableView(
+                    label: {
+                        Label(LocalizedStringKey("no_statistics_title"), systemImage: "chart.pie")
+                    },
+                    description: {
+                        Text(LocalizedStringKey("no_statistics_description"))
+                    }
+                )
+                .frame(height: 200)
+            }
+        }
+    }
+}
+
+struct StatsCategoryListView: View {
+    let categoryData: [CategoryStat]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(LocalizedStringKey("by_category_label"))
+                .font(.title3)
+                .fontWeight(.bold)
+                .padding(.horizontal)
+            
+            VStack(spacing: 12) {
+                ForEach(categoryData) { stat in
+                    CategoryRowView(stat: stat)
+                }
+            }
+            .padding(.horizontal)
+        }
+    }
+}
+
+// MARK: - Components
 
 struct PeriodToggleButton: View {
     let title: LocalizedStringKey
@@ -154,9 +242,8 @@ struct PeriodToggleButton: View {
     }
 }
 
-// MARK: - Category Row View
 struct CategoryRowView: View {
-    let stat: SubscriptionManager.CategoryStat
+    let stat: CategoryStat
     
     var body: some View {
         HStack(spacing: 15) {
@@ -184,80 +271,48 @@ struct CategoryRowView: View {
             Spacer()
             
             // Cost
-            Text("-\(stat.totalCost, format: .currency(code: "EUR"))")
+            Text("-" + stat.totalCost.formatted(.currency(code: "EUR")))
                 .font(.headline)
                 .fontWeight(.semibold)
         }
         .padding()
-        .background(Color(uiColor: .systemGray6))
+        .background(Color.gray.opacity(0.15))
         .cornerRadius(12)
     }
 }
 
-// MARK: - Pie Chart View
-struct PieChartView: View {
-    let data: [SubscriptionManager.CategoryStat]
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(Array(data.enumerated()), id: \.offset) { index, stat in
-                    PieSlice(
-                        startAngle: startAngle(for: index),
-                        endAngle: endAngle(for: index),
-                        color: stat.category.color
-                    )
-                }
-            }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-        }
-    }
-    
-    private func startAngle(for index: Int) -> Angle {
-        let sum = data.prefix(index).reduce(0.0) { $0 + $1.percentage }
-        return Angle(degrees: sum * 3.6 - 90)
-    }
-    
-    private func endAngle(for index: Int) -> Angle {
-        let sum = data.prefix(index + 1).reduce(0.0) { $0 + $1.percentage }
-        return Angle(degrees: sum * 3.6 - 90)
-    }
-}
-
-struct PieSlice: View {
+// Converted to Shape for better performance
+struct PieSliceShape: Shape {
     let startAngle: Angle
     let endAngle: Angle
-    let color: Color
     
-    var body: some View {
-        GeometryReader { geometry in
-            let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
-            let radius = min(geometry.size.width, geometry.size.height) / 2
-            let innerRadius = radius * 0.5
-            
-            Path { path in
-                path.addArc(
-                    center: center,
-                    radius: radius,
-                    startAngle: startAngle,
-                    endAngle: endAngle,
-                    clockwise: false
-                )
-                path.addLine(to: CGPoint(
-                    x: center.x + innerRadius * cos(endAngle.radians),
-                    y: center.y + innerRadius * sin(endAngle.radians)
-                ))
-                path.addArc(
-                    center: center,
-                    radius: innerRadius,
-                    startAngle: endAngle,
-                    endAngle: startAngle,
-                    clockwise: true
-                )
-                path.closeSubpath()
-            }
-            .fill(color)
-        }
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        let innerRadius = radius * 0.5
+        
+        path.addArc(
+            center: center,
+            radius: radius,
+            startAngle: startAngle,
+            endAngle: endAngle,
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(
+            x: center.x + innerRadius * CGFloat(cos(endAngle.radians)),
+            y: center.y + innerRadius * CGFloat(sin(endAngle.radians))
+        ))
+        path.addArc(
+            center: center,
+            radius: innerRadius,
+            startAngle: endAngle,
+            endAngle: startAngle,
+            clockwise: true
+        )
+        path.closeSubpath()
+        
+        return path
     }
 }
 
@@ -268,4 +323,3 @@ struct PieSlice: View {
     return StatisticsView()
         .environment(manager)
 }
-

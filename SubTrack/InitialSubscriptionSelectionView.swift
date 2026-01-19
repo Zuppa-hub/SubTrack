@@ -92,6 +92,7 @@ struct InitialSubscriptionSelectionView: View {
                             handleConfigurationCompletion(subscription: newSub)
                         }
                     )
+                    .id(service.id) // Force recreation of the view for each service
                 } else {
                     Text(LocalizedStringKey("internal_configuration_error"))
                         .frame(height: 0)

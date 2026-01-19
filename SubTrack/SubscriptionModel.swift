@@ -198,15 +198,6 @@ class SubscriptionManager {
         return costs.map { MonthlyCost(month: $0.0, totalCost: $0.1) }
     }
     
-    // MARK: - Statistics Methods
-    struct CategoryStat: Identifiable {
-        let id = UUID()
-        let category: Category
-        let totalCost: Double
-        let transactionCount: Int
-        let percentage: Double
-    }
-    
     func getCategoryStatistics() -> [CategoryStat] {
         guard !subscriptions.isEmpty else { return [] }
         
@@ -263,4 +254,13 @@ class SubscriptionManager {
             return result + monthlyEquivalent
         }
     }
+}
+
+// MARK: - Statistics Methods
+struct CategoryStat: Identifiable {
+    let id = UUID()
+    let category: Category
+    let totalCost: Double
+    let transactionCount: Int
+    let percentage: Double
 }

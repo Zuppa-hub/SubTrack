@@ -101,9 +101,12 @@ struct SubscriptionsListView: View {
                             
                             VStack(spacing: 1) {
                                 ForEach(sortedSubscriptions) { subscription in
-                                    SubscriptionRowView(subscription: subscription)
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal)
+                                    NavigationLink(destination: SubscriptionDetailView(subscription: subscription)) {
+                                        SubscriptionRowView(subscription: subscription)
+                                    }
+                                    .buttonStyle(PlainButtonStyle()) // Keeps the row looking like a custom view, not a blue link
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal)
                                 }
                             }
                         } // Fine VStack ScrollView
@@ -196,9 +199,7 @@ struct SubscriptionRowView: View {
                     .font(.caption)
                     .foregroundColor(.gray)
             }
-            .onTapGesture {
-                print("Navigating to details of: \(subscription.name)")
-            }
+
         }
     }
 }
