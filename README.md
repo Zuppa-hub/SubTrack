@@ -161,10 +161,6 @@ The app uses the `SubscriptionManager` class (marked with `@Observable`) to mana
 
 Andrea Cazzato - University Project (Mobile Systems)
 
-## 📄 License
-
-[Insert appropriate license]
-
 ---
 
 **Last updated**: January 2026
